@@ -1,0 +1,33 @@
+[tool.poetry]
+name = "iot-powersquat-optimize"
+version = "0.1.0"
+description = ""
+authors = ["ryanlinjui <ryanlinjui@gmail.com>"]
+readme = "README.md"
+packages = [{include = "iot_powersquat_optimize"}]
+
+[tool.poetry.dependencies]
+python = "^3.10"
+line-bot-sdk = "^3.5.0"
+flask = "^3.0.0"
+aiohttp = "~3.9"
+
+
+[tool.poetry.group.dev.dependencies]
+python-dotenv = "^1.0.0"
+
+
+[tool.poetry.group.inbody.dependencies]
+google-cloud = "^0.34.0"
+google-cloud-vision = "^3.4.5"
+shapely = "^2.0.2"
+pillow = "^10.1.0"
+
+
+[tool.poetry.group.r2.dependencies]
+dataplane = "^0.1.3"
+boto3 = "^1.33.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
