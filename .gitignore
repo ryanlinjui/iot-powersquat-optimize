@@ -1,2 +1,22 @@
 # mac cache
 .DS_Store
+
+# python cache
+__pycache__
+
+# environment variable
+.env
+.key
+
+# poetry
+poetry.lock
+.venv
+
+# temp
+tmp
+
+# database
+database
+
+# log
+*.log
