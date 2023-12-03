@@ -9,7 +9,7 @@ Smart Wearable Devices & Pose Estimation for Optimizing Powerlifting and Squatti
 - Prevents injuries and strains
 - Customize the user’s movement to maximum the weight limit
 
-## Methodolog
+## Methodology
 - Find: Optimized squat form
 - Through: Reinforcement Learning
 - With: Joint position data
