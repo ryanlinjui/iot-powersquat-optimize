@@ -9,3 +9,5 @@ def save_tmp_file(file:bytes, extension:str) -> str:
     with open(tmp_filepath, "wb") as f:
         f.write(file)
     return tmp_filepath
+
+__all__ = ["save_tmp_file"]
