@@ -10,11 +10,6 @@ packages = [{include = "iot_powersquat_optimize"}]
 python = "^3.10"
 line-bot-sdk = "^3.5.0"
 flask = "^3.0.0"
-aiohttp = "~3.9"
-
-
-[tool.poetry.group.dev.dependencies]
-python-dotenv = "^1.0.0"
 
 
 [tool.poetry.group.inbody.dependencies]
