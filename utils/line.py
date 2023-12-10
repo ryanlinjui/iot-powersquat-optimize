@@ -9,9 +9,6 @@ from linebot.models import (
 )
 from os import getenv
 
-from dotenv import load_dotenv
-load_dotenv()
-
 line_bot_api = LineBotApi(getenv("CHANNEL_ACCESS_TOKEN"))
 line_webhook = WebhookHandler(getenv("CHANNEL_SECRET"))
 
