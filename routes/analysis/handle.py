@@ -7,16 +7,7 @@ from linebot.models import (
 )
 import os
 
-from utils import (
-    reply_button_menu,
-    reply_message,
-    send_message,
-    send_video,
-    DatabaseManager,
-    STATE, COL,
-    R2_Manager,
-    save_tmp_file
-)
+from utils import *
 from ..home import HomeMenu
 
 import time
@@ -31,21 +22,21 @@ class AnalysisMenu:
                 actions=[
                     PostbackAction(
                         label="返回主頁面",
-                        data=STATE["return"]
+                        data=DatabaseManager.STATE["return"]
                     )
                 ]
             )
         )
 
     def call(user_id:str, token:str):
-        DatabaseManager.update_state(user_id, STATE["analysis"])
+        DatabaseManager.update_state(user_id, DatabaseManager.STATE["analysis"])
         reply_button_menu(token, AnalysisMenu.get_object())
 
     def callback(user_id:str, token:str, file:bytes):
         send_message(user_id, "正在開始分析，可能需要一些時間，完成時將會通知您，在此之前請勿做其他操作")
         filepath = save_tmp_file(file, "mp4")
         R2_Manager.upload(filepath)
-        DatabaseManager.update_element(user_id, COL[3], os.path.basename(filepath))
+        DatabaseManager.update_element(user_id, DatabaseManager.STATE["analysis"], os.path.basename(filepath))
         
         try:
             AnalysisMenu.analysis()

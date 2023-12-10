@@ -2,8 +2,7 @@
 
 from utils import (
     send_message,
-    DatabaseManager,
-    STATE
+    DatabaseManager
 )
 
 from .iot import IoTMenu
@@ -13,11 +12,11 @@ from .analysis import AnalysisMenu
 from .home import HomeMenu
 
 EXPECTION = {
-    STATE["iot"]: IoTMenu.call,
-    STATE["inbody"]: InbodyMenu.call,
-    STATE["skeleton"]: SkeletonMenu.call,
-    STATE["analysis"]: AnalysisMenu.call,
-    STATE["home"]: HomeMenu.call
+    DatabaseManager.STATE["home"]: HomeMenu.call,
+    DatabaseManager.STATE["inbody"]: InbodyMenu.call,
+    DatabaseManager.STATE["skeleton"]: SkeletonMenu.call,
+    DatabaseManager.STATE["iot"]: IoTMenu.call,
+    DatabaseManager.STATE["analysis"]: AnalysisMenu.call
 }
 
 EXPECTION_MESSAGE = "不合法操作，請對系統友善一點"

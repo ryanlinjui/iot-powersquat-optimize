@@ -2,12 +2,9 @@ from google.cloud import vision
 from google.oauth2 import service_account
 from io import BytesIO
 from os import getenv
-from dotenv import load_dotenv
-
 
 class ImageDetection:
     def __init__(self):
-        load_dotenv()
         credentials = service_account.Credentials.from_service_account_file(
             getenv("GCLOUD_CREDENTIALS_PATH"),
             scopes=['https://www.googleapis.com/auth/cloud-platform'],

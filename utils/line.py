@@ -7,13 +7,10 @@ from linebot.models import (
     VideoSendMessage,
     TemplateSendMessage
 )
-from os import getenv
+import os
 
-from dotenv import load_dotenv
-load_dotenv()
-
-line_bot_api = LineBotApi(getenv("CHANNEL_ACCESS_TOKEN"))
-line_webhook = WebhookHandler(getenv("CHANNEL_SECRET"))
+line_bot_api = LineBotApi(os.getenv("CHANNEL_ACCESS_TOKEN"))
+line_webhook = WebhookHandler(os.getenv("CHANNEL_SECRET"))
 
 def reply_message(token:str, msg:str):
     line_bot_api.reply_message(

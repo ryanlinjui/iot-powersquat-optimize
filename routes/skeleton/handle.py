@@ -7,15 +7,7 @@ from linebot.models import (
 )
 import os
 
-from utils import (
-    reply_button_menu,
-    reply_message,
-    send_message,
-    DatabaseManager,
-    STATE, COL,
-    R2_Manager,
-    save_tmp_file
-)
+from utils import *
 from ..home import HomeMenu
 
 class SkeletonMenu:
@@ -28,26 +20,22 @@ class SkeletonMenu:
                 actions=[
                     PostbackAction(
                         label="返回主頁面",
-                        data=STATE["return"]
+                        data=DatabaseManager.STATE["return"]
                     )
                 ]
             )
         )
 
     def call(user_id:str, token:str):
-        DatabaseManager.update_state(user_id, STATE["skeleton"])
+        DatabaseManager.update_state(user_id, DatabaseManager.STATE["skeleton"])
         reply_button_menu(token, SkeletonMenu.get_object())
 
     def callback(user_id:str, token:str, file:bytes):
         filepath = save_tmp_file(file, "mp4")
         R2_Manager.upload(filepath)
-        DatabaseManager.update_element(user_id, COL[2], os.path.basename(filepath))
+        DatabaseManager.update_element(user_id, DatabaseManager.STATE["skeleton"], os.path.basename(filepath))
         SkeletonMenu.success(user_id, token)
-
-        # except
-            # SkeletonMenu.exception(user_id, token)
-            # return
-
+        
     def success(user_id:str, token:str):
         send_message(user_id, "上傳骨架影片成功")
         HomeMenu.call(user_id, token)
