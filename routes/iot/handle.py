@@ -7,22 +7,8 @@ from linebot.models import (
 )
 import os
 
-from utils import (
-    reply_button_menu,
-    reply_message,
-    send_message,
-    DatabaseManager,
-    STATE, COL
-)
+from utils import *
 from ..home import HomeMenu
-
-UUID_LIST = [
-    "test1",
-    "test2",
-    "test3",
-    "test4",
-    "test5"
-]
 
 class IoTMenu:
     def get_object() -> TemplateSendMessage:
@@ -34,22 +20,22 @@ class IoTMenu:
                 actions=[
                     PostbackAction(
                         label="返回主頁面",
-                        data=STATE["return"]
+                        data=DatabaseManager.STATE["return"]
                     )
                 ]
             )
         )
 
     def call(user_id:str, token:str):
-        DatabaseManager.update_state(user_id, STATE["iot"])
+        DatabaseManager.update_state(user_id, DatabaseManager.STATE["iot"])
         reply_button_menu(token, IoTMenu.get_object())
 
     def callback(user_id:str, token:str, uuid:str):
-        if (uuid in UUID_LIST) == False:
+        if (uuid in DatabaseManager.get_iot_uuid_list) == False:
             IoTMenu.exception(user_id, token)
             return
 
-        DatabaseManager.update_element(user_id, COL[4], uuid)
+        DatabaseManager.update_element(user_id,  DatabaseManager.STATE["iot"], uuid)
         IoTMenu.success(user_id, token)
 
     def success(user_id:str, token:str):

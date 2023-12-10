@@ -7,20 +7,9 @@ from linebot.models import (
 )
 import os
 
-from utils import (
-    reply_button_menu,
-    reply_message,
-    send_message,
-    DatabaseManager,
-    STATE, COL,
-    R2_Manager,
-    save_tmp_file
-)
+from utils import *
 from ..home import HomeMenu
-
 from .process import inbody_recognition
-
-from utils import create_tmp_filename
 
 class InbodyMenu:
     def get_object() -> TemplateSendMessage:
@@ -32,14 +21,14 @@ class InbodyMenu:
                 actions=[
                     PostbackAction(
                         label="返回主頁面",
-                        data=STATE["return"]
+                        data=DatabaseManager.STATE["return"]
                     )
                 ]
             )
         )
 
     def call(user_id:str, token:str):
-        DatabaseManager.update_state(user_id, STATE["inbody"])
+        DatabaseManager.update_state(user_id, DatabaseManager.STATE["inbody"])
         reply_button_menu(token, InbodyMenu.get_object())
 
     def callback(user_id:str, token:str, file:bytes):
@@ -47,7 +36,7 @@ class InbodyMenu:
         # json_file = inbody_recognition(img_filepath)
         json_filepath = create_tmp_filename("json")
         # R2_Manager.upload(json_filepath)
-        DatabaseManager.update_element(user_id, COL[1], json_filepath)
+        DatabaseManager.update_element(user_id,  DatabaseManager.STATE["inbody"], json_filepath)
         InbodyMenu.success(user_id, token)
         
         # except
