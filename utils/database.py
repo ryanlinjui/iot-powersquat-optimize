@@ -1,50 +1,80 @@
-import sqlite3
+'''
+Database Information
 
-COL = [
-    "home",
-    "inbody",
-    "skeleton",
-    "analysis",
-    "iot",
-    "return"
-]
+Table: iot_uuid
+    Info: 
+        Store the UUIDs of authenticated IoT sensors.
 
-STATE = {
-    COL[0]: 0,
-    COL[1]: 1,
-    COL[2]: 2,
-    COL[3]: 3,
-    COL[4]: 4,
-    COL[5]: 5
-}
+    Column:
+        uuid: UUID of IoT sensor.
 
-# TODO block user action for each menu case when user thread is running
-
-DB_INIT_EXECUTION = '''
-    CREATE TABLE IF NOT EXISTS user (
-        id TEXT NOT NULL UNIQUE,
-        inbody TEXT DEFAULT NULL,
-        skeleton TEXT DEFAULT NULL,
-        iot TEXT DEFAULT NULL,
-        analysis TEXT DEFAULT NULL,
-        state INTEGER NOT NULL DEFAULT 0
-    )
+Table: user
+    Info:
+        Store temporary data and status for the user.
+    
+    Column:
+        id: User's unique Line ID from Line Server. (It's not that LineID on Line App)
+        inbody: Inbody image filepath/URL from cloud storage.
+        skeleton: Skeleton video filepath/URL from cloud storage.
+        iot: The data that IoT sensor collect json filepath/URL from cloud storage.
+        analysis: Ready for analysis video filepath/URL from cloud storage.
+        state: For whole FSM system.
+        status: For lock user's event while user's request.
 '''
 
-DB_FILEPATH = "./database/user.db"
+import sqlite3
+import os
+
+# Automatically execute the following SQL exection before call any of DatabaseManager's function.
+DB_INIT_EXECUTION = [
+    "PRAGMA foreign_keys = ON;",
+    '''
+    CREATE TABLE IF NOT EXISTS iot_uuid (
+        uuid TEXT NOT NULL UNIQUE
+    );
+    ''',
+    '''
+    CREATE TABLE IF NOT EXISTS user (
+        id TEXT NOT NULL UNIQUE,
+        inbody TEXT UNIQUE DEFAULT NULL,
+        skeleton TEXT UNIQUE DEFAULT NULL,
+        iot TEXT DEFAULT NULL,
+        analysis TEXT UNIQUE DEFAULT NULL,
+        state TEXT NOT NULL DEFAULT 'home',
+        status BOOLEAN NOT NULL DEFAULT FALSE,
+        FOREIGN KEY (iot) REFERENCES iot_uuid(uuid),
+        CONSTRAINT unique_iot_value UNIQUE (id, iot)
+    );
+    '''
+]
+
+def db_init(func):
+    def wrapper(*args, **kwargs):
+        conn = sqlite3.connect(os.getenv("DATABASE_PATH"), isolation_level=None, check_same_thread=False)
+        cursor = conn.cursor()
+        for execution in DB_INIT_EXECUTION:
+            cursor.execute(execution)
+        result = func(conn, cursor, *args, **kwargs)
+        conn.commit()
+        conn.close()
+        return result
+    return wrapper
+
+@db_init
+def add_iot_uuid(conn, cursor, uuid:str):
+    cursor.execute("INSERT INTO iot_uuid (uuid) VALUES (?)", (uuid,))
 
 class DatabaseManager:
-    def db_init(func):
-        def wrapper(*args, **kwargs):
-            conn = sqlite3.connect(DB_FILEPATH, isolation_level=None, check_same_thread=False)
-            cursor = conn.cursor()
-            cursor.execute(DB_INIT_EXECUTION)
-            result = func(conn, cursor, *args, **kwargs)
-            conn.commit()
-            conn.close()
-            return result
-        return wrapper
-
+    # mapping variable for dev
+    STATE = { 
+        "home": "home",
+        "inbody": "inbody",
+        "skeleton": "skeleton",
+        "iot":  "iot",
+        "analysis": "analysis",
+        "return": "return"
+    }
+    
     @db_init
     def insert_user(conn, cursor, user_id:str):
         cursor.execute("INSERT INTO user (id) VALUES (?)", (user_id,))
@@ -59,9 +89,9 @@ class DatabaseManager:
         return cursor.fetchone()[0]
 
     @db_init
-    def update_state(conn, cursor, user_id:str, state_num:int):
-        if state_num < 0 or state_num > 4: return
-        cursor.execute("UPDATE user SET state = ? WHERE id = ?", (state_num, user_id,))
+    def update_state(conn, cursor, user_id:str, state:str):
+        if state in DatabaseManager.STATE:
+            cursor.execute("UPDATE user SET state = ? WHERE id = ?", (state, user_id,))
 
     @db_init
     def update_element(conn, cursor, user_id:str, element:str, value:str):
@@ -76,6 +106,27 @@ class DatabaseManager:
         else:
             return False
 
+    @db_init
+    def reverse_event_status(conn, cursor, user_id:str):
+        cursor.execute("UPDATE user SET status = NOT status WHERE id = ?", (user_id,))
+
+    @db_init
+    def is_user_event_active(conn, cursor, user_id:str) -> bool:
+        cursor.execute("SELECT status FROM user WHERE id = ?", (user_id,))
+        result = cursor.fetchone()[0]
+        if result:
+            return bool(result)
+        else:
+            return False
+
+    @db_init
+    def get_iot_uuid_list(conn, cursor) -> list:
+        cursor.execute("SELECT uuid FROM iot_uuid")
+        return [row[0] for row in cursor.fetchall()]
+
+__all__ = ["DatabaseManager"]
+
 if __name__ == "__main__":
-    DatabaseManager.delete_user("test")
-    DatabaseManager.insert_user("test")
+    DatabaseManager.add_iot_uuid("1bc68b2a")
+    # DatabaseManager.insert_user("test")
+    # DatabaseManager.update_element("test", "iot","123")
