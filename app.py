@@ -19,9 +19,6 @@ import routes
 
 app = Flask(__name__)
 
-from dotenv import load_dotenv
-load_dotenv()
-
 @app.route("/", methods=["GET"])
 def hello_world():
     return "<h1>hello world</h1>"
