@@ -20,3 +20,6 @@ database
 
 # log
 *.log
+
+# vscode setting
+.vscode
