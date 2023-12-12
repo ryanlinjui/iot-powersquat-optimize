@@ -16,8 +16,10 @@ Table: user
         id: User's unique Line ID from Line Server. (It's not that LineID on Line App)
         inbody: Inbody image filepath/URL from cloud storage.
         skeleton: Skeleton video filepath/URL from cloud storage.
-        iot: The data that IoT sensor collect json filepath/URL from cloud storage.
-        analysis: Ready for analysis video filepath/URL from cloud storage.
+        sensor_uuid: User's UUID of IoT sensor.
+        sensor_data: The data that IoT sensor collect json filepath/URL from cloud storage.
+        analysis_src: Ready for analysis video filepath/URL from cloud storage.
+        analysis_result: The video filepath/URL from cloud storage after passing analysis system.
         state: For whole FSM system.
         status: For lock user's event while user's request.
 '''
@@ -29,7 +31,7 @@ import os
 DB_INIT_EXECUTION = [
     "PRAGMA foreign_keys = ON;",
     '''
-    CREATE TABLE IF NOT EXISTS iot_uuid (
+    CREATE TABLE IF NOT EXISTS sensor_uuid_list (
         uuid TEXT NOT NULL UNIQUE
     );
     ''',
@@ -38,12 +40,19 @@ DB_INIT_EXECUTION = [
         id TEXT NOT NULL UNIQUE,
         inbody TEXT UNIQUE DEFAULT NULL,
         skeleton TEXT UNIQUE DEFAULT NULL,
-        iot TEXT DEFAULT NULL,
-        analysis TEXT UNIQUE DEFAULT NULL,
+        sensor_uuid TEXT UNIQUE DEFAULT NULL,
+        sensor_data TEXT UNIQUE DEFAULT NULL,
+        analysis_src TEXT UNIQUE DEFAULT NULL,
+        analysis_result TEXT UNIQUE DEFAULT NULL,
         state TEXT NOT NULL DEFAULT 'home',
         status BOOLEAN NOT NULL DEFAULT FALSE,
-        FOREIGN KEY (iot) REFERENCES iot_uuid(uuid),
-        CONSTRAINT unique_iot_value UNIQUE (id, iot)
+        FOREIGN KEY (sensor_uuid) REFERENCES sensor_uuid_list(uuid),
+        CONSTRAINT unique_iot_value UNIQUE (id, inbody),
+        CONSTRAINT unique_iot_value UNIQUE (id, skeleton),
+        CONSTRAINT unique_iot_value UNIQUE (id, sensor_uuid),
+        CONSTRAINT unique_iot_value UNIQUE (id, sensor_data),
+        CONSTRAINT unique_iot_value UNIQUE (id, analysis_src),
+        CONSTRAINT unique_iot_value UNIQUE (id, analysis_result)
     );
     '''
 ]
@@ -61,16 +70,16 @@ def db_init(func):
     return wrapper
 
 @db_init
-def add_iot_uuid(conn, cursor, uuid:str):
-    cursor.execute("INSERT INTO iot_uuid (uuid) VALUES (?)", (uuid,))
+def add_sensor_uuid(conn, cursor, uuid:str):
+    cursor.execute("INSERT INTO sensor_uuid_list (uuid) VALUES (?)", (uuid,))
 
 class DatabaseManager:
     # mapping variable for dev
     STATE = { 
         "home": "home",
         "inbody": "inbody",
+        "iot": "iot",
         "skeleton": "skeleton",
-        "iot":  "iot",
         "analysis": "analysis",
         "return": "return"
     }
@@ -84,14 +93,24 @@ class DatabaseManager:
         cursor.execute("DELETE FROM user WHERE id = ?", (user_id,))
 
     @db_init
-    def get_state(conn, cursor, user_id:str) -> int:
+    def get_state(conn, cursor, user_id:str) -> str:
         cursor.execute("SELECT state FROM user WHERE id = ?", (user_id,))
+        return cursor.fetchone()[0]
+    
+    @db_init
+    def get_state_by_iot(conn, cursor, iot:str) -> str:
+        cursor.execute("SELECT state FROM user WHERE iot = ?", (iot,))
         return cursor.fetchone()[0]
 
     @db_init
     def update_state(conn, cursor, user_id:str, state:str):
         if state in DatabaseManager.STATE:
             cursor.execute("UPDATE user SET state = ? WHERE id = ?", (state, user_id,))
+    
+    @db_init
+    def get_element(conn, cursor, user_id:str, element:str):
+        cursor.execute(f"SELECT {element} FROM user WHERE id = ?", (user_id,))
+        return cursor.fetchone()[0]
 
     @db_init
     def update_element(conn, cursor, user_id:str, element:str, value:str):
@@ -121,12 +140,12 @@ class DatabaseManager:
 
     @db_init
     def get_iot_uuid_list(conn, cursor) -> list:
-        cursor.execute("SELECT uuid FROM iot_uuid")
+        cursor.execute("SELECT uuid FROM sensor_uuid_list")
         return [row[0] for row in cursor.fetchall()]
 
 __all__ = ["DatabaseManager"]
 
 if __name__ == "__main__":
-    DatabaseManager.add_iot_uuid("1bc68b2a")
+    add_sensor_uuid("2626765d-5db5-4ece-89c1-2d83e3eab210")
     # DatabaseManager.insert_user("test")
     # DatabaseManager.update_element("test", "iot","123")
