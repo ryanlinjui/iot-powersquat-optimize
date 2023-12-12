@@ -31,11 +31,11 @@ class IoTMenu:
         reply_button_menu(token, IoTMenu.get_object())
 
     def callback(user_id:str, token:str, uuid:str):
-        if (uuid in DatabaseManager.get_iot_uuid_list) == False:
+        send_message(user_id, "正在設定裝置UUID\n請稍候......")
+        if (uuid in DatabaseManager.get_iot_uuid_list()) == False:
             IoTMenu.exception(user_id, token)
             return
-
-        DatabaseManager.update_element(user_id,  DatabaseManager.STATE["iot"], uuid)
+        DatabaseManager.update_element(user_id, "sensor_uuid", uuid)
         IoTMenu.success(user_id, token)
 
     def success(user_id:str, token:str):
