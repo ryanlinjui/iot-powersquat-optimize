@@ -25,7 +25,7 @@ def calculate_area(poly_bound):
     area = 0.5 * abs(x1 * y2 + x2 * y3 + x3 * y4 + x4 * y1 - y1 * x2 - y2 * x3 - y3 * x4 - y4 * x1)
     return area
 
-def bounding_filter(text_data, start_text:str, direction:int, search_rate:float, key_text=None):
+def bounding_filter(text_data, start_text:str, direction:int, search_rate:float, key_text=None) -> list:
 
     key_data = None
     for data in text_data:
@@ -56,7 +56,7 @@ def bounding_filter(text_data, start_text:str, direction:int, search_rate:float,
     
     return filter_result
 
-def data_extraction(text_data):
+def data_extraction(text_data) -> list:
     result_data = []
     for data in text_data:
         if re.match(r'^[0-9]+\.[0-9]+$', data.description):
@@ -67,7 +67,7 @@ def data_extraction(text_data):
 
     return result_data
 
-def get_inbody_data(img):
+def get_inbody_data(img) -> dict:
     width, height = img.size
     new_height = height // 5
     data = []
@@ -76,7 +76,7 @@ def get_inbody_data(img):
         top = i * new_height
         bottom = (i + 1) * new_height
         cropped_image = img.crop((0, top, width, bottom))
-        data.append(data_extraction(google_vision(cropped_image)))
+        data.append(data_extraction(image_detection_api.run(cropped_image)))
 
     inbody_data = {
         "right_arm": {
@@ -105,11 +105,9 @@ def get_inbody_data(img):
             "ECW": data[4][4]
         }
     }
-    
-    with open("output.json", "w") as json_file:
-        json_file.write(json.dumps(inbody_data))
+    return inbody_data
 
-def segmental_lean_analysis(img):
+def segmental_lean_analysis(img) -> dict:
     text_data = image_detection_api.run(img)
     text_data = bounding_filter(text_data, "InBody", 2, 1.0)
     text_data =  bounding_filter(text_data, "平衡", 3, 1.0, "肌肉")[0]
@@ -118,12 +116,10 @@ def segmental_lean_analysis(img):
         (text_data.bounding_poly.vertices[3].x, text_data.bounding_poly.vertices[3].y + 55, 
         text_data.bounding_poly.vertices[3].x + 1150, text_data.bounding_poly.vertices[3].y + 675)
     )
-    
     # img.save("test.jpg")
     return get_inbody_data(img)
 
-def inbody_recognition(img_path:str):
+def inbody_recognition(img_path:str) -> bytes:
     img = preprocess(Image.open(img_path))
-    return segmental_lean_analysis(img)
-
-    
+    json_data = segmental_lean_analysis(img)
+    return json.dumps(json_data).encode()

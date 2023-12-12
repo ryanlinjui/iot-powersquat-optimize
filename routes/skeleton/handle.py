@@ -31,9 +31,10 @@ class SkeletonMenu:
         reply_button_menu(token, SkeletonMenu.get_object())
 
     def callback(user_id:str, token:str, file:bytes):
+        send_message(user_id, "正在上傳骨架影片\n請稍候......")
         filepath = save_tmp_file(file, "mp4")
         R2_Manager.upload(filepath)
-        DatabaseManager.update_element(user_id, DatabaseManager.STATE["skeleton"], os.path.basename(filepath))
+        DatabaseManager.update_element(user_id, "skeleton", os.path.basename(filepath))
         SkeletonMenu.success(user_id, token)
         
     def success(user_id:str, token:str):

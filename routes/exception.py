@@ -19,9 +19,15 @@ EXPECTION = {
     DatabaseManager.STATE["analysis"]: AnalysisMenu.call
 }
 
-EXPECTION_MESSAGE = "不合法操作，請對系統友善一點"
-
-def expection_replay(user_id:str, token:str):
+def invaild_replay(user_id:str, token:str):
     state = DatabaseManager.get_state(user_id)
-    send_message(user_id, EXPECTION_MESSAGE)
+    send_message(user_id, "不合法操作，請對系統友善一點")
     EXPECTION[state](user_id, token)
+
+def expection_send(user_id:str):
+    send_message(user_id, "未知錯誤情況發生，請再試一次")
+
+__all__ = [
+    "invaild_replay",
+    "expection_replay"
+]

@@ -11,7 +11,7 @@ from linebot.models.events import (
 )
 
 from utils import *
-from .exception import expection_replay
+from .exception import *
 from .iot import IoTMenu
 from .inbody import InbodyMenu
 from .skeleton import SkeletonMenu
@@ -28,6 +28,7 @@ def lock_event(func):
             except Exception as e:
                 raise(e)
             finally:
+                expection_send(user_id)
                 DatabaseManager.reverse_event_status(user_id)
     return wrapper
 
@@ -57,7 +58,7 @@ def handle_message(event:MessageEvent):
     if DatabaseManager.get_state(user_id) == DatabaseManager.STATE["iot"]:
         IoTMenu.callback(user_id, token, message)
     else:
-        expection_replay(user_id, token)
+        invaild_replay(user_id, token)
 
 @line_webhook.add(MessageEvent, message=ImageMessage)
 @lock_event
@@ -71,7 +72,7 @@ def handle_image(event:MessageEvent):
         file_content = line_bot_api.get_message_content(message_id).content
         InbodyMenu.callback(user_id, token, file_content)
     else:
-        expection_replay(user_id, token)
+        invaild_replay(user_id, token)
 
 @line_webhook.add(MessageEvent, message=VideoMessage)
 @lock_event
@@ -88,7 +89,7 @@ def handle_video(event:MessageEvent):
         file_content = line_bot_api.get_message_content(message_id).content
         AnalysisMenu.callback(user_id, token, file_content)
     else:
-        expection_replay(user_id, token)
+        invaild_replay(user_id, token)
 
 @line_webhook.add(PostbackEvent)
 @lock_event
@@ -108,9 +109,9 @@ def handle_postback(event:PostbackEvent):
         elif data == DatabaseManager.STATE["skeleton"]:
             SkeletonMenu.call(user_id, token)
         elif data == DatabaseManager.STATE["analysis"]:
-            if DatabaseManager.check_element_exist(user_id, DatabaseManager.STATE["inbody"]) and DatabaseManager.check_element_exist(user_id, DatabaseManager.STATE["skeleton"]):
+            if DatabaseManager.check_element_exist(user_id, "inbody") and DatabaseManager.check_element_exist(user_id, "skeleton"):
                 AnalysisMenu.call(user_id, token)
             else:
-                HomeMenu.exception(user_id, token, DatabaseManager.STATE["analysis"])
+                HomeMenu.exception(user_id, token)
     else:
-        expection_replay(user_id, token)
+        invaild_replay(user_id, token)

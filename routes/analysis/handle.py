@@ -6,6 +6,7 @@ from linebot.models import (
     PostbackAction
 )
 import os
+import requests
 
 from utils import *
 from ..home import HomeMenu
@@ -33,14 +34,23 @@ class AnalysisMenu:
         reply_button_menu(token, AnalysisMenu.get_object())
 
     def callback(user_id:str, token:str, file:bytes):
+        # analysis video
         send_message(user_id, "正在開始分析，可能需要一些時間，完成時將會通知您，在此之前請勿做其他操作")
-        filepath = save_tmp_file(file, "mp4")
-        R2_Manager.upload(filepath)
-        DatabaseManager.update_element(user_id, DatabaseManager.STATE["analysis"], os.path.basename(filepath))
-        
+
+        analysis_src_video_filepath = save_tmp_file(file, "mp4")
+        R2_Manager.upload(analysis_src_video_filepath)
+        DatabaseManager.update_element(user_id, "inbody", os.path.basename(analysis_src_video_filepath))
+
         try:
-            AnalysisMenu.analysis()
-            AnalysisMenu.success(user_id, token, )
+            AnalysisMenu.analysis(
+                user_id=user_id,
+                inbody_filepath=DatabaseManager.get_element(user_id, "inbody"),
+                skeleton_filepath=DatabaseManager.get_element(user_id, "skeleton"),
+                src_video_filepath=DatabaseManager.get_element(user_id, "analysis_src"),
+                sensor_data_filepath=DatabaseManager.get_element(user_id, "sensor_data")
+            )
+
+            AnalysisMenu.success(user_id, token, analysis_result_url)
         except:
             AnalysisMenu.exception(user_id, token)
         
@@ -50,10 +60,21 @@ class AnalysisMenu:
         HomeMenu.call(user_id, token)
 
     def exception(user_id:str, token:str):
-        send_message(user_id, "有些錯誤發生了, 請再次上傳深蹲影片一次")  
+        send_message(user_id, "有些錯誤發生了, 請再次上傳深蹲影片")  
         AnalysisMenu.call(user_id, token)
 
-    def analysis():
-        time.sleep(10)
-        # TODO send video url to another server
-        return
+    def analysis(user_id:str, inbody_filepath:str, skeleton_filepath:str, src_video_filepath:str, sensor_data_filepath:str):
+        request_data = {}
+        request_data["inbody"] =  os.getenv("ACCESS_DOMAIN") + inbody_filepath
+        request_data["skeleton"] = os.getenv("ACCESS_DOMAIN") + skeleton_filepath
+        request_data["analysis_src"] = os.getenv("ACCESS_DOMAIN") + src_video_filepath
+        request_data["sensor_data"] = os.getenv("ACCESS_DOMAIN") + sensor_data_filepath
+
+        response = requests.post(os.getenv("ANALYSIS_SERVER_URL"), json=request_data)
+        if response.status_code == 200:
+            analysis_video_filepath = save_tmp_file(response.content, "mp4")
+            R2_Manager.upload(analysis_video_filepath)
+            DatabaseManager.update_element(user_id, "analysis_result", os.path.basename(analysis_video_filepath))
+        else:
+            raise(f"Error issue occur when analysis video\nstatus code: {response.status_code}")
+        return os.getenv("ACCESS_DOMAIN") + analysis_video_filepath

@@ -43,7 +43,6 @@ class HomeMenu:
         DatabaseManager.update_state(user_id, DatabaseManager.STATE["home"])
         reply_button_menu(token, HomeMenu.get_object())
 
-    def exception(user_id:str, token:str, error_num:int):
-        if error_num == DatabaseManager.STATE["analysis"]:
-            send_message(user_id, "開始分析之前必須先上傳Inbody照片和骨架影片")
-            HomeMenu.call(user_id, token)
+    def exception(user_id:str, token:str):
+        send_message(user_id, "開始分析之前必須先上傳Inbody照片和骨架影片")
+        HomeMenu.call(user_id, token)
