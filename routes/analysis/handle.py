@@ -38,21 +38,20 @@ class AnalysisMenu:
         send_message(user_id, "正在開始分析，可能需要一些時間，完成時將會通知您，在此之前請勿做其他操作")
 
         analysis_src_video_filepath = save_tmp_file(file, "mp4")
-        R2_Manager.upload(analysis_src_video_filepath)
-        DatabaseManager.update_element(user_id, "inbody", os.path.basename(analysis_src_video_filepath))
-
-        try:
-            AnalysisMenu.analysis(
-                user_id=user_id,
-                inbody_filepath=DatabaseManager.get_element(user_id, "inbody"),
-                skeleton_filepath=DatabaseManager.get_element(user_id, "skeleton"),
-                src_video_filepath=DatabaseManager.get_element(user_id, "analysis_src"),
-                sensor_data_filepath=DatabaseManager.get_element(user_id, "sensor_data")
-            )
-
-            AnalysisMenu.success(user_id, token, analysis_result_url)
-        except:
+        
+        response = send_object(user_id, analysis_src_video_filepath, "analysis_src")
+        if response == None: 
             AnalysisMenu.exception(user_id, token)
+            return
+
+        analysis_result_video_filepath = AnalysisMenu.send_analysis_request(user_id)
+        if analysis_result_video_filepath == None: 
+            AnalysisMenu.exception(user_id, token)
+            return
+
+        R2_Manager.upload(analysis_result_video_filepath)
+        DatabaseManager.update_element(user_id, "analysis_result", os.path.basename(analysis_result_video_filepath))
+        AnalysisMenu.success(user_id, token, os.getenv("ACCESS_DOMAIN") + os.path.basename(analysis_result_video_filepath))
         
     def success(user_id:str, token:str, url:str):
         send_message(user_id, "分析完成，以下為分析影片:")
@@ -63,18 +62,29 @@ class AnalysisMenu:
         send_message(user_id, "有些錯誤發生了, 請再次上傳深蹲影片")  
         AnalysisMenu.call(user_id, token)
 
-    def analysis(user_id:str, inbody_filepath:str, skeleton_filepath:str, src_video_filepath:str, sensor_data_filepath:str):
-        request_data = {}
-        request_data["inbody"] =  os.getenv("ACCESS_DOMAIN") + inbody_filepath
-        request_data["skeleton"] = os.getenv("ACCESS_DOMAIN") + skeleton_filepath
-        request_data["analysis_src"] = os.getenv("ACCESS_DOMAIN") + src_video_filepath
-        request_data["sensor_data"] = os.getenv("ACCESS_DOMAIN") + sensor_data_filepath
+    def send_analysis_request(user_id:str) -> str:
+        request_data = {
+            "id": user_id,
+            "inbody": DatabaseManager.get_element(user_id, "inbody"),
+            "skeleton": DatabaseManager.get_element(user_id, "skeleton"),
+            "analysis_src": DatabaseManager.get_element(user_id, "analysis_src"),
+            "sensor_data": DatabaseManager.get_element(user_id, "sensor_data")
+        }
 
-        response = requests.post(os.getenv("ANALYSIS_SERVER_URL"), json=request_data)
-        if response.status_code == 200:
-            analysis_video_filepath = save_tmp_file(response.content, "mp4")
-            R2_Manager.upload(analysis_video_filepath)
-            DatabaseManager.update_element(user_id, "analysis_result", os.path.basename(analysis_video_filepath))
-        else:
-            raise(f"Error issue occur when analysis video\nstatus code: {response.status_code}")
-        return os.getenv("ACCESS_DOMAIN") + analysis_video_filepath
+        try:
+            logging.debug(f"Request to analysis server: {request_data}")
+            analysis_response = requests.post(os.getenv("ANALYSIS_SERVER_URL"), json=request_data)
+            logging.debug(f"Respnse from analysis server: {response}")
+
+            if analysis_response.status_code != 200:
+                logging.error(f"Error issue occur when analysis video\nstatus code: {analysis_response.status_code}")        
+                return None
+            else:
+                DatabaseManager.update_element(user_id, element, filepath)
+
+            analysis_result_video_filepath = save_tmp_file(analysis_response["content"], "mp4")
+            return analysis_result_video_filepath
+        
+        except Exception as e:
+            logging.error(f"Error issue occur when analysis video: {e}")
+            return None
