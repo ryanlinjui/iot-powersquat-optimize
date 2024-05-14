@@ -9,6 +9,7 @@ from linebot.models.events import (
     FollowEvent,
     UnfollowEvent
 )
+import logging
 
 from utils import *
 from .exception import *
@@ -23,27 +24,35 @@ def lock_event(func):
         user_id = args[0].source.user_id
         if DatabaseManager.is_user_event_active(user_id) == False:
             DatabaseManager.reverse_event_status(user_id)
+            logging.debug(f"User status lock: {user_id}")
             try:
                 func(args[0])
             except Exception as e:
+                logging.error(f"Exception: {e}, user_id: {user_id}")
+                expection_send(user_id)
                 raise(e)
             finally:
-                expection_send(user_id)
                 DatabaseManager.reverse_event_status(user_id)
+                logging.debug(f"User status unlock: {user_id}")
     return wrapper
 
 @line_webhook.add(FollowEvent)
 def handle_follow(event:FollowEvent):
     # reply home menu and create and inital data with user
+    logging.debug(f"FollowEvent: {event.source.user_id}")
+    
     user_id = event.source.user_id
     token = event.reply_token
 
     DatabaseManager.insert_user(user_id)
     HomeMenu.call(user_id, token)
+    
 
 @line_webhook.add(UnfollowEvent)
 def handle_unfollow(event:UnfollowEvent):
     # delete all data with user
+    logging.debug(f"UnfollowEvent: {event.source.user_id}")
+
     user_id = event.source.user_id
     DatabaseManager.delete_user(event.source.user_id)
 
@@ -51,6 +60,8 @@ def handle_unfollow(event:UnfollowEvent):
 @lock_event
 def handle_message(event:MessageEvent):
     # if state is iot, do it, otherwise, reply invaild msg and ask it again
+    logging.debug(f"MessageEvent: {event.source.user_id}")
+
     user_id = event.source.user_id
     token = event.reply_token
     message = event.message.text
@@ -64,6 +75,8 @@ def handle_message(event:MessageEvent):
 @lock_event
 def handle_image(event:MessageEvent):
     # if state is inbody, do it, otherwise, reply invaild msg and ask it again
+    logging.debug(f"ImageEvent: {event.source.user_id}")
+
     user_id = event.source.user_id
     token = event.reply_token
     message_id = event.message.id 
@@ -78,6 +91,8 @@ def handle_image(event:MessageEvent):
 @lock_event
 def handle_video(event:MessageEvent):
     # if state is skeloton or analysis, do it, otherwise, reply invaild msg and ask it again
+    logging.debug(f"VideoEvent: {event.source.user_id}")
+
     user_id = event.source.user_id
     token = event.reply_token
     message_id = event.message.id
@@ -95,6 +110,8 @@ def handle_video(event:MessageEvent):
 @lock_event
 def handle_postback(event:PostbackEvent):
     # if state is home, do it, otherwise, reply invaild msg and ask it again
+    logging.debug(f"PostbackEvent: {event.source.user_id}")
+
     user_id = event.source.user_id
     token = event.reply_token
     data = event.postback.data
