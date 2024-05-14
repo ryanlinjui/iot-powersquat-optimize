@@ -33,10 +33,10 @@ class InbodyMenu:
 
     def callback(user_id:str, token:str, file:bytes):
         send_message(user_id, "正在上傳Inbody照片\n請稍候......")
-        json_file = inbody_recognition(save_tmp_file(file, "json"))
+        json_file = inbody_recognition(save_tmp_file(file, "jpg"))
         json_filepath = save_tmp_file(json_file, "json")
-        R2_Manager.upload(json_filepath)
-        DatabaseManager.update_element(user_id, "inbody", os.path.basename(json_filepath))
+        response = send_object(user_id, json_filepath, "inbody")
+        if response == None: InbodyMenu.exception(user_id, token)
         InbodyMenu.success(user_id, token)
         
     def success(user_id:str, token:str):

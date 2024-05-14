@@ -111,12 +111,10 @@ def segmental_lean_analysis(img) -> dict:
     text_data = image_detection_api.run(img)
     text_data = bounding_filter(text_data, "InBody", 2, 1.0)
     text_data =  bounding_filter(text_data, "平衡", 3, 1.0, "肌肉")[0]
-    # text_data =  bounding_filter(text_data, "Segmental", 3, 1.0, "Segmental")[0]
     img = img.crop(
-        (text_data.bounding_poly.vertices[3].x, text_data.bounding_poly.vertices[3].y + 55, 
-        text_data.bounding_poly.vertices[3].x + 1150, text_data.bounding_poly.vertices[3].y + 675)
+        (text_data.bounding_poly.vertices[3].x, text_data.bounding_poly.vertices[3].y + 45, 
+        text_data.bounding_poly.vertices[3].x + 1160, text_data.bounding_poly.vertices[3].y + 665)
     )
-    # img.save("test.jpg")
     return get_inbody_data(img)
 
 def inbody_recognition(img_path:str) -> bytes:
