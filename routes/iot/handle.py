@@ -33,6 +33,7 @@ class IoTMenu:
     def callback(user_id:str, token:str, uuid:str):
         send_message(user_id, "正在設定裝置UUID\n請稍候......")
         if (uuid in DatabaseManager.get_iot_uuid_list()) == False:
+            
             IoTMenu.exception(user_id, token)
             return
         DatabaseManager.update_element(user_id, "sensor_uuid", uuid)
