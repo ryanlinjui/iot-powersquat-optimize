@@ -1,7 +1,7 @@
 '''
 Database Information
 
-Table: iot_uuid
+Table: sensor_uuid_list
     Info: 
         Store the UUIDs of authenticated IoT sensors.
 
@@ -98,8 +98,8 @@ class DatabaseManager:
         return cursor.fetchone()[0]
     
     @db_init
-    def get_state_by_iot(conn, cursor, iot:str) -> str:
-        cursor.execute("SELECT state FROM user WHERE iot = ?", (iot,))
+    def get_user_id_by_sensor_uuid(conn, cursor, sensor_uuid:str) -> str:
+        cursor.execute("SELECT id FROM user WHERE sensor_uuid = ?", (sensor_uuid,))
         return cursor.fetchone()[0]
 
     @db_init
@@ -144,8 +144,3 @@ class DatabaseManager:
         return [row[0] for row in cursor.fetchall()]
 
 __all__ = ["DatabaseManager"]
-
-if __name__ == "__main__":
-    add_sensor_uuid("2626765d-5db5-4ece-89c1-2d83e3eab210")
-    # DatabaseManager.insert_user("test")
-    # DatabaseManager.update_element("test", "iot","123")
