@@ -35,7 +35,11 @@ class SkeletonMenu:
         send_message(user_id, "正在上傳骨架影片\n請稍候......")
         skeleton_filepath = save_tmp_file(file, "mp4")
         response = send_object(user_id, skeleton_filepath, "skeleton")
-        if response == None: SkeletonMenu.exception(user_id, token)
+        
+        if response == None: 
+            SkeletonMenu.exception(user_id, token)
+            return
+
         SkeletonMenu.success(user_id, token)
         
     def success(user_id:str, token:str):

@@ -36,7 +36,11 @@ class InbodyMenu:
         json_file = inbody_recognition(save_tmp_file(file, "jpg"))
         json_filepath = save_tmp_file(json_file, "json")
         response = send_object(user_id, json_filepath, "inbody")
-        if response == None: InbodyMenu.exception(user_id, token)
+        
+        if response == None: 
+            InbodyMenu.exception(user_id, token)
+            return
+            
         InbodyMenu.success(user_id, token)
         
     def success(user_id:str, token:str):
