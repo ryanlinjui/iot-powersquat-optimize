@@ -16,6 +16,7 @@ shapely = "^2.0.2"
 pillow = "^10.1.0"
 dataplane = "^0.1.3"
 boto3 = "^1.33.0"
+requests = "^2.31.0"
 
 [build-system]
 requires = ["poetry-core"]
