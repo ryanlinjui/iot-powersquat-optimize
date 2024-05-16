@@ -1,9 +1,10 @@
 # -*- coding: utf-8 -*-
 
-from PIL import Image
-from shapely.geometry import Point, Polygon, LineString
 import json
 import re
+
+from PIL import Image
+from shapely.geometry import Point, Polygon, LineString
 
 from .gcloud import image_detection_api
 

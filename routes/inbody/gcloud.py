@@ -1,7 +1,8 @@
+from os import getenv
+from io import BytesIO
+
 from google.cloud import vision
 from google.oauth2 import service_account
-from io import BytesIO
-from os import getenv
 
 class ImageDetection:
     def __init__(self):
@@ -10,7 +11,7 @@ class ImageDetection:
             scopes=['https://www.googleapis.com/auth/cloud-platform'],
         )
         self.client = vision.ImageAnnotatorClient(credentials=credentials)
-
+    
     def run(self, image):
         image_data = BytesIO()
         image.save(image_data, format="JPEG")

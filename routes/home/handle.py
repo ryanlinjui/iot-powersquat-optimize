@@ -1,15 +1,22 @@
 # -*- coding: utf-8 -*-
 
+import os
+
 from linebot.models import (
     TemplateSendMessage,
     ButtonsTemplate,
     PostbackAction
 )
-import os
 
-from utils import*
+from utils import (
+    DatabaseManager,
+    reply_button_menu,
+    send_message
+)
 
 class HomeMenu:
+    
+    @staticmethod
     def get_object() -> TemplateSendMessage:
         return TemplateSendMessage(
             alt_text="HomeMenu",
@@ -39,10 +46,12 @@ class HomeMenu:
             )
         )
 
+    @staticmethod
     def call(user_id:str, token:str):
         DatabaseManager.update_state(user_id, DatabaseManager.STATE["home"])
         reply_button_menu(token, HomeMenu.get_object())
 
+    @staticmethod
     def exception(user_id:str, token:str):
         send_message(user_id, "開始分析之前必須先上傳Inbody照片和骨架影片")
         HomeMenu.call(user_id, token)

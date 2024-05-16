@@ -1,7 +1,13 @@
-from flask import Blueprint, request, jsonify, abort
-import json
 import os
 import logging
+import json
+
+from flask import (
+    Blueprint,
+    request,
+    jsonify,
+    abort
+)
 
 from utils import (
     DatabaseManager,
@@ -13,7 +19,7 @@ iot_receive_app = Blueprint("iot_receive", __name__)
 tmp = {}
 
 @iot_receive_app.route("/iot/<uuid>", methods=["POST"])
-def _iot_receive(uuid:str):
+def iot_receive(uuid:str):
     try:
         data_items = request.data.decode("utf-8").split("|")
         result_list = []
@@ -39,11 +45,13 @@ def _iot_receive(uuid:str):
         IMU_data = {
             "data": result_list
         }
+        
         IMU_data_path = save_tmp_file(json.dumps(IMU_data).encode(), "json")
         user_id = DatabaseManager.get_user_id_by_sensor_uuid(uuid)
         DatabaseManager.update_element(user_id, "sensor_data", os.path.basename(IMU_data_path))
         R2_Manager.upload(IMU_data_path)
         return jsonify({"status": "success"})
+
     except Exception as e:
         logging.error(f"Error: {e}")
         abort(403)

@@ -1,17 +1,17 @@
+import os
+import logging
+import shutil
+
 from flask import Flask, request, abort
 from linebot.v3.exceptions import (
     InvalidSignatureError
 )
 
+import routes
+from routes.iot.receive import iot_receive_app
 from utils import (
     line_webhook
 )
-import os
-import logging
-import shutil
-
-import routes
-from routes.iot.receive import iot_receive_app
 
 logging.basicConfig(
     level = logging.DEBUG,

@@ -4,7 +4,6 @@ from utils import (
     send_message,
     DatabaseManager
 )
-
 from .iot import IoTMenu
 from .inbody import InbodyMenu
 from .skeleton import SkeletonMenu

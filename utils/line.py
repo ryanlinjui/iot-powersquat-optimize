@@ -1,3 +1,6 @@
+import os
+import logging
+
 from linebot import (
     LineBotApi,
     WebhookHandler
@@ -7,8 +10,6 @@ from linebot.models import (
     VideoSendMessage,
     TemplateSendMessage
 )
-import os
-import logging
 
 line_bot_api = LineBotApi(os.getenv("CHANNEL_ACCESS_TOKEN"))
 line_webhook = WebhookHandler(os.getenv("CHANNEL_SECRET"))

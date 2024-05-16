@@ -1,19 +1,28 @@
 # -*- coding: utf-8 -*-
 
+import os
+import time
+import requests
+
 from linebot.models import (
     TemplateSendMessage,
     ButtonsTemplate,
     PostbackAction
 )
-import os
-import requests
 
-from utils import *
+from utils import (
+    DatabaseManager,
+    reply_button_menu,
+    send_message,
+    save_tmp_file,
+    send_object,
+    send_video
+)
 from ..home import HomeMenu
 
-import time
-
 class AnalysisMenu:
+
+    @staticmethod
     def get_object() -> TemplateSendMessage:
         return TemplateSendMessage(
             alt_text="Return",
@@ -29,10 +38,12 @@ class AnalysisMenu:
             )
         )
 
+    @staticmethod
     def call(user_id:str, token:str):
         DatabaseManager.update_state(user_id, DatabaseManager.STATE["analysis"])
         reply_button_menu(token, AnalysisMenu.get_object())
 
+    @staticmethod
     def callback(user_id:str, token:str, file:bytes):
         # analysis video
         send_message(user_id, "正在開始分析，可能需要一些時間，完成時將會通知您，在此之前請勿做其他操作")
@@ -44,7 +55,7 @@ class AnalysisMenu:
             AnalysisMenu.exception(user_id, token)
             return
 
-        analysis_result_video_filepath = AnalysisMenu.send_analysis_request(user_id)
+        analysis_result_video_filepath = AnalysisMenu._send_analysis_request(user_id)
         if analysis_result_video_filepath == None: 
             AnalysisMenu.exception(user_id, token)
             return
@@ -53,16 +64,19 @@ class AnalysisMenu:
         DatabaseManager.update_element(user_id, "analysis_result", os.path.basename(analysis_result_video_filepath))
         AnalysisMenu.success(user_id, token, os.getenv("ACCESS_DOMAIN") + os.path.basename(analysis_result_video_filepath))
         
+    @staticmethod
     def success(user_id:str, token:str, url:str):
         send_message(user_id, "分析完成，以下為分析影片:")
         send_video(user_id, url)
         HomeMenu.call(user_id, token)
 
+    @staticmethod
     def exception(user_id:str, token:str):
         send_message(user_id, "有些錯誤發生了, 請再次上傳深蹲影片")  
         AnalysisMenu.call(user_id, token)
 
-    def send_analysis_request(user_id:str) -> str:
+    @staticmethod
+    def _send_analysis_request(user_id:str) -> str:
         request_data = {
             "id": user_id,
             "inbody": DatabaseManager.get_element(user_id, "inbody"),

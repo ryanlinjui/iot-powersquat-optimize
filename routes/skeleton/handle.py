@@ -1,17 +1,27 @@
 # -*- coding: utf-8 -*-
 
+import os
+import requests
+
 from linebot.models import (
     TemplateSendMessage,
     ButtonsTemplate,
     PostbackAction
 )
-import os
-import requests
 
-from utils import *
+from utils import (
+    DatabaseManager,
+    reply_button_menu,
+    send_message,
+    save_tmp_file,
+    send_object,
+    send_video
+)
 from ..home import HomeMenu
 
 class SkeletonMenu:
+
+    @staticmethod
     def get_object() -> TemplateSendMessage:
         return TemplateSendMessage(
             alt_text="Return",
@@ -27,10 +37,12 @@ class SkeletonMenu:
             )
         )
 
+    @staticmethod
     def call(user_id:str, token:str):
         DatabaseManager.update_state(user_id, DatabaseManager.STATE["skeleton"])
         reply_button_menu(token, SkeletonMenu.get_object())
 
+    @staticmethod
     def callback(user_id:str, token:str, file:bytes):
         send_message(user_id, "正在上傳骨架影片\n請稍候......")
         skeleton_filepath = save_tmp_file(file, "mp4")
@@ -42,10 +54,12 @@ class SkeletonMenu:
 
         SkeletonMenu.success(user_id, token)
         
+    @staticmethod
     def success(user_id:str, token:str):
         send_message(user_id, "上傳骨架影片成功")
         HomeMenu.call(user_id, token)
     
+    @staticmethod
     def exception(user_id:str, token:str):
         send_message(user_id, "有些錯誤發生了, 請再次上傳骨架影片一次")
         SkeletonMenu.call(user_id, token)

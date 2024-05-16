@@ -1,7 +1,8 @@
-from dataplane import s3_upload
+import os
+
 import boto3
 from botocore.client import Config
-import os
+from dataplane import s3_upload
 
 class R2_Manager:
     client_access_key = os.getenv("R2_ACCESS_KEY_ID")
@@ -17,7 +18,7 @@ class R2_Manager:
         config=Config(signature_version="s3v4"),
         region_name="us-east-1"
     )
-        
+
     @classmethod
     def upload(cls, filepath):
         UploadObject = open(filepath, "rb").read()
