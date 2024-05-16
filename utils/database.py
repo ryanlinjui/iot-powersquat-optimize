@@ -84,38 +84,46 @@ class DatabaseManager:
         "return": "return"
     }
     
+    @staticmethod
     @db_init
     def insert_user(conn, cursor, user_id:str):
         cursor.execute("INSERT INTO user (id) VALUES (?)", (user_id,))
 
+    @staticmethod
     @db_init
     def delete_user(conn, cursor, user_id:str):
         cursor.execute("DELETE FROM user WHERE id = ?", (user_id,))
 
+    @staticmethod
     @db_init
     def get_state(conn, cursor, user_id:str) -> str:
         cursor.execute("SELECT state FROM user WHERE id = ?", (user_id,))
         return cursor.fetchone()[0]
     
+    @staticmethod
     @db_init
     def get_user_id_by_sensor_uuid(conn, cursor, sensor_uuid:str) -> str:
         cursor.execute("SELECT id FROM user WHERE sensor_uuid = ?", (sensor_uuid,))
         return cursor.fetchone()[0]
 
+    @staticmethod
     @db_init
     def update_state(conn, cursor, user_id:str, state:str):
         if state in DatabaseManager.STATE:
             cursor.execute("UPDATE user SET state = ? WHERE id = ?", (state, user_id,))
     
+    @staticmethod
     @db_init
     def get_element(conn, cursor, user_id:str, element:str):
         cursor.execute(f"SELECT {element} FROM user WHERE id = ?", (user_id,))
         return cursor.fetchone()[0]
 
+    @staticmethod
     @db_init
     def update_element(conn, cursor, user_id:str, element:str, value:str):
         cursor.execute(f"UPDATE user SET {element} = ? WHERE id = ?", (value, user_id))
     
+    @staticmethod
     @db_init
     def check_element_exist(conn, cursor, user_id:str, element:str) -> bool:
         cursor.execute(f"SELECT {element} FROM user WHERE id = ?", (user_id,))
@@ -125,10 +133,12 @@ class DatabaseManager:
         else:
             return False
 
+    @staticmethod
     @db_init
     def reverse_event_status(conn, cursor, user_id:str):
         cursor.execute("UPDATE user SET status = NOT status WHERE id = ?", (user_id,))
 
+    @staticmethod
     @db_init
     def is_user_event_active(conn, cursor, user_id:str) -> bool:
         cursor.execute("SELECT status FROM user WHERE id = ?", (user_id,))
@@ -138,6 +148,7 @@ class DatabaseManager:
         else:
             return False
 
+    @staticmethod
     @db_init
     def get_iot_uuid_list(conn, cursor) -> list:
         cursor.execute("SELECT uuid FROM sensor_uuid_list")

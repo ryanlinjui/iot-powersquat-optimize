@@ -3,6 +3,7 @@ from io import BytesIO
 
 from google.cloud import vision
 from google.oauth2 import service_account
+from google.api_core.exceptions import GoogleAPICallError, InvalidArgument
 
 class ImageDetection:
     def __init__(self):
@@ -16,13 +17,38 @@ class ImageDetection:
         image_data = BytesIO()
         image.save(image_data, format="JPEG")
         image = vision.Image(content=image_data.getvalue())
-        response = self.client.text_detection(image=image)
         
-        if response.error.message:
-            raise Exception(
-                "{}\nFor more info on error messages, check: "
-                "https://cloud.google.com/apis/design/errors".format(response.error.message)
+        try:
+            response = self.client.text_detection(image=image)
+
+        except GoogleAPICallError as e:
+            raise GoogleAPICallError(
+                f"API call error: {e.message}\n"
+                "For more info on error messages, check: \n"
+                "https://cloud.google.com/apis/design/errors"
             )
+
+        except InvalidArgument as e:
+            raise InvalidArgument(
+                f"Invalid argument: {e.message}\n"
+                "For more info on error messages, check: \n"
+                "https://cloud.google.com/apis/design/errors"
+            )
+        
+        except Exception as e:
+            raise Exception(
+                f"Unknown error: {e.message}\n"
+                "For more info on error messages, check: \n"
+                "https://cloud.google.com/apis/design/errors"
+            )
+
+        if response.error.message:
+            raise GoogleAPICallError(
+                f"{response.error.message}\n"
+                "For more info on error messages, check: \n"
+                "https://cloud.google.com/apis/design/errors"
+            )
+
 
         return response.text_annotations[1:]
 

@@ -48,7 +48,7 @@ class InbodyMenu:
         json_filepath = save_tmp_file(json_file, "json")
         response = send_object(user_id, json_filepath, "inbody")
         
-        if response == None: 
+        if response == "":
             InbodyMenu.exception(user_id, token)
             return
             

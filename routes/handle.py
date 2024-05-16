@@ -61,7 +61,6 @@ def handle_unfollow(event:UnfollowEvent):
     # delete all data with user
     logging.debug(f"UnfollowEvent: {event.source.user_id}")
 
-    user_id = event.source.user_id
     DatabaseManager.delete_user(event.source.user_id)
 
 @line_webhook.add(MessageEvent, message=TextMessage)

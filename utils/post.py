@@ -15,4 +15,4 @@ def send_object(user_id:str, filepath:str, element:str) -> str:
         
     except Exception as e:
         logging.error(f"Error issue occur when send object\n{e}")
-        return None
+        return ""

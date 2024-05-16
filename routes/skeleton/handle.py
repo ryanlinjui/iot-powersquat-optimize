@@ -48,7 +48,7 @@ class SkeletonMenu:
         skeleton_filepath = save_tmp_file(file, "mp4")
         response = send_object(user_id, skeleton_filepath, "skeleton")
         
-        if response == None: 
+        if response == "":
             SkeletonMenu.exception(user_id, token)
             return
 
