@@ -2,13 +2,13 @@
 
 import os
 import time
-import requests
 
 from linebot.models import (
     TemplateSendMessage,
     ButtonsTemplate,
     PostbackAction
 )
+import requests
 
 from utils import (
     DatabaseManager,
@@ -51,12 +51,12 @@ class AnalysisMenu:
         analysis_src_video_filepath = save_tmp_file(file, "mp4")
         
         response = send_object(user_id, analysis_src_video_filepath, "analysis_src")
-        if response == None: 
+        if response == "":
             AnalysisMenu.exception(user_id, token)
             return
 
         analysis_result_video_filepath = AnalysisMenu._send_analysis_request(user_id)
-        if analysis_result_video_filepath == None: 
+        if analysis_result_video_filepath == "": 
             AnalysisMenu.exception(user_id, token)
             return
 
@@ -87,18 +87,22 @@ class AnalysisMenu:
 
         try:
             logging.debug(f"Request to analysis server: {request_data}")
-            analysis_response = requests.post(os.getenv("ANALYSIS_SERVER_URL"), json=request_data)
+            analysis_response : requests.Response = requests.post(
+                os.getenv("ANALYSIS_SERVER_URL"),
+                json=request_data
+            )
+            
             logging.debug(f"Respnse from analysis server: {response}")
 
             if analysis_response.status_code != 200:
                 logging.error(f"Error issue occur when analysis video\nstatus code: {analysis_response.status_code}")        
-                return None
+                return ""
             else:
                 DatabaseManager.update_element(user_id, element, filepath)
 
-            analysis_result_video_filepath = save_tmp_file(analysis_response["content"], "mp4")
+            analysis_result_video_filepath = save_tmp_file(analysis_response.content, "mp4")
             return analysis_result_video_filepath
         
         except Exception as e:
             logging.error(f"Error issue occur when analysis video: {e}")
-            return None
+            return ""
